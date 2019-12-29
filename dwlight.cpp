@@ -4,32 +4,35 @@
 DWLight::DWLight(int pin, bool analog = true) {
   _pin = pin;
   _analog = analog;
-}
+};
 
-void DWLight::setup() {
+void DWLight::setup(DWLightCallbackAnimationEnd callbackAnimationEnded = nullptr) {
   if (_pin == -1) {
     Serial.println("DWLight::setup() setting pinMode to OUTPUT");
   } else {
     pinMode(_pin, OUTPUT); 
   }
-}
+  if (callbackAnimationEnded != nullptr) {
+    this->setAnimationEndCallback(callbackAnimationEnded);
+  }
+};
 
-void DWLight::setModeSimple(DWLightMode mode, int forSteps) {
-  if (_mode != mode) {
+void DWLight::setModeSimple(DWLightMode mode, short forSteps) {
+//  if (_mode != mode) {
     _modeChanged = true;
     _step = (abs(forSteps) * -1);
     _mode = mode;
     _panimation = nullptr;
-  }
-}
+//  }
+};
 
-void DWLight::setModeManual(int value, int forSteps = 0) {
+void DWLight::setModeManual(int value, short forSteps = 0) {
   _modeChanged = true;
   _step = (abs(forSteps) * -1);
   _mode = DWLightModeManual;
   _manualValue = value;
   _panimation = nullptr;
-}
+};
 
 void DWLight::setModeAnimate(DWAnimation* panimation) {
   if (_pin == -1) {
@@ -136,58 +139,46 @@ void DWLight::doStep() {
 
 void DWLight::setPinValue(int value) {
   if (_analog) {
-//    if (_pin == -1) {
-//      Serial.print("Setting analog mode on pin to ");
-//      Serial.println(value);
-//    } else {
-      analogWrite(_pin, value);
-//    }
+    analogWrite(_pin, value);
+    _pinValue = value;
   } else {
-    bool bValue = (value == 0) ? true : false;
-//    if (_pin == -1) {
-//      Serial.print("Setting digital mode on pin to ");
-//      Serial.println(bValue);
-//    } else {
-      digitalWrite(_pin, bValue);
-//    }
+    int pinValue = (value == 0) ? LOW : HIGH;
+    digitalWrite(_pin, pinValue);
+    _pinValue = pinValue == LOW ? 0 : 255;
   }
+}
+
+bool DWLight::isSleepable() {
+  return (_mode == DWLightModeOn || _mode == DWLightModeOff || _pinValue == 0 || _pinValue == 255);
 }
 
 void DWLight::test(int delayMillis) {
   if (isAnalog()) {
-    setModeSimple(DWLightModeOn);
-    doStep();
-    delay(delayMillis);
-    setModeManual(100);
-    doStep();
-    delay(delayMillis);
-    setModeManual(30);
-    doStep();
-    delay(delayMillis);
-    setModeSimple(DWLightModeOff);
-    doStep();
-    delay(delayMillis);
+    for (byte i = 0; i < 3; i++) {
+      setModeSimple(DWLightModeOn);
+      doStep();
+      delay(delayMillis);
+      setModeManual(100);
+      doStep();
+      delay(delayMillis);
+      setModeManual(30);
+      doStep();
+      delay(delayMillis);
+      setModeSimple(DWLightModeOff);
+      doStep();
+      delay(delayMillis);
+    }
   } else {
-    setModeSimple(DWLightModeOn);
-    doStep();
-    delay(delayMillis);
-    setModeSimple(DWLightModeOff);
-    doStep();
-    delay(delayMillis);
-    setModeSimple(DWLightModeOn);
-    doStep();
-    delay(delayMillis);
-    setModeSimple(DWLightModeOff);
-    doStep();
-    delay(delayMillis);
-    setModeSimple(DWLightModeOn);
-    doStep();
-    delay(delayMillis);
-    setModeSimple(DWLightModeOff);
-    doStep();
-    delay(delayMillis);
+    for (byte i = 0; i < 6; i++) {
+      setModeSimple(DWLightModeOn);
+      doStep();
+      delay(delayMillis);
+      setModeSimple(DWLightModeOff);
+      doStep();
+      delay(delayMillis);
+    }
   }
-}
+};
 
 
 void DWLight::debugDump() {

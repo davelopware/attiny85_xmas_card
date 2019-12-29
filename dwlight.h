@@ -42,7 +42,8 @@ enum DWLightMode {
   DWLightModeOn,
   DWLightModeManual,
   DWLightModeAnimate,
-  DWLightModeAnimateInterpolate
+  DWLightModeAnimateInterpolate,
+  DWLightModeStop,
 };
 
 typedef void (*DWLightCallbackAnimationEnd) (void *);
@@ -50,6 +51,7 @@ typedef void (*DWLightCallbackAnimationEnd) (void *);
 class DWLight {
   private:
     byte _pin;
+    byte _pinValue = 0;
     bool _analog = true;
     short _step = 0;
     DWLightMode _mode = DWLightModeOff;
@@ -63,19 +65,22 @@ class DWLight {
     DWLight(int pin, bool analog = true);
     isAnalog() { return _analog; };
     
-    void setup();
+    void setup(DWLightCallbackAnimationEnd callbackAnimationEnded = nullptr);
     void setAnimationEndCallback(DWLightCallbackAnimationEnd callbackAnimationEnded) {_callbackAnimationEnded = callbackAnimationEnded;}
 
     DWLightMode getMode() { return _mode; };
-    void setModeSimple(DWLightMode mode, int forSteps = 0);
-    void setModeManual(int value, int forSteps = 0);
+    void setModeSimple(DWLightMode mode, short forSteps = 0);
+    void setModeManual(int value, short forSteps = 0);
     void setModeAnimate(DWAnimation* panimation);
     void setModeAnimateInterpolate(DWAnimation* panimation);
     DWAnimation* getAnimation() { return _panimation; };
 
-    int getStep() { return _step; };
+    short getStep() { return _step; };
     void resetStep() { _step = 0; };
     void doStep();
+
+//    void forceChanged() { _modeChanged = true; }
+    bool isSleepable();
 
     void test(int delayMillis);
     void debugDump();

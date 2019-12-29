@@ -12,56 +12,26 @@ DWLight lightHouseUp(T85Pin2Dout, false);
 
 #define TEST_DELAY 2
 
+void startXmas();
 void callbackLightStreetSequence(void* pdwlight);
 void callbackLightHouseDownSequence(void* pdwlight);
+void callbackLightHouseUpSequence(void* pdwlight);
 
-void callbackRestart(void* pdwlight) {
-  DWLight* plight = reinterpret_cast<DWLight*>(pdwlight);
 
-  plight->resetStep();
-    if (plight == &lightStreet) {
-      plight->setModeAnimateInterpolate(&animFireplaceOn);
-    } else {
-      plight->setModeAnimate(&animFireplaceOn);
-    }
-    return;
 
-  if (plight->getAnimation() == &animFireplaceOn) {
-    if (plight == &lightStreet) {
-      plight->setModeAnimateInterpolate(&animFireplaceOff);
-    } else {
-      plight->setModeAnimate(&animFireplaceOff);
-    }
-  } else {
-    if (plight == &lightStreet) {
-      plight->setModeAnimateInterpolate(&animFlickerOn);
-    } else {
-      plight->setModeAnimate(&animFlickerOn);
-    }
-  }
-  
-}
 void setup() {
-  dwlighttest_setup();
+//  dwlighttest_setup();
 //  dwlighttest_basic();
 
-  lightStreet.setup();
-//  lightStreet.setAnimationEndCallback(callbackLightStreetSequence);
-  lightStreet.setAnimationEndCallback(callbackRestart);
-  lightHouseDown.setup();
-//  lightHouseDown.setAnimationEndCallback(callbackLightHouseDownSequence);
-  lightHouseDown.setAnimationEndCallback(callbackRestart);
+  lightStreet.setup(callbackLightStreetSequence);
+  lightHouseDown.setup(callbackLightHouseDownSequence);
+  lightHouseUp.setup(callbackLightHouseUpSequence);
 
-  delay(10);
-  pinMode(T85Pin2Dout, OUTPUT);
+  lightStreet.test(100);
+  lightHouseDown.test(100);
+  lightHouseUp.test(100);
 
-
-  lightStreet.test(200);
-  lightHouseDown.test(200);
-
-//  lightStreet.setModeAnimate(&animFlickerOn);
-  lightStreet.setModeAnimateInterpolate(&animFireplaceOn);
-  lightHouseDown.setModeAnimate(&animFireplaceOn);
+  startXmas();
 }
 
 
@@ -69,12 +39,8 @@ const int MILLI_BLOCK_COUNT = 16;
 long milliBlockStart = 0;
 
 void loop() {
-  if (milliBlockStart == 0) {
-    delay(1000);
-  }
-  
   long millisNow = millis();
-  if (milliBlockStart + 16 < millisNow) {
+  if (milliBlockStart + MILLI_BLOCK_COUNT < millisNow) {
     milliBlockStart = millisNow;
     nMilliLoop();
   }
@@ -84,7 +50,14 @@ void loop() {
 void nMilliLoop() {
   lightStreet.doStep();
   lightHouseDown.doStep();
-//  delay(50);
+  lightHouseUp.doStep();
+}
+
+void startXmas() {
+  lightStreet.setModeSimple(DWLightModeOff, 5000);
+  lightHouseDown.setModeAnimateInterpolate(&animFireplaceOn);
+  lightHouseUp.setModeSimple(DWLightModeOff);
+  lightHouseUp.doStep();
 }
 
 void callbackLightStreetSequence(void* pdwlight) {
@@ -92,24 +65,22 @@ void callbackLightStreetSequence(void* pdwlight) {
 
   plight->resetStep();
 
-  if (plight->getMode() == DWLightModeAnimate && plight->getAnimation() == &animFlickerOn) {
-    plight->setModeSimple(DWLightModeOn, 625);
+  if (plight->getMode() == DWLightModeOff) {
+    plight->setModeAnimate(&animFlickerOn);
+    
+  } else if (plight->getAnimation() == &animFlickerOn) {
+    plight->setModeSimple(DWLightModeOn, 15000);
     
   } else if (plight->getMode() == DWLightModeOn) {
     plight->setModeAnimate(&animFlickerOff);
     
-  } else if (plight->getMode() == DWLightModeAnimate && plight->getAnimation() == &animFlickerOff) {
-    plight->setModeSimple(DWLightModeOff, 625);
+  } else if (plight->getAnimation() == &animFlickerOff) {
+    plight->setModeSimple(DWLightModeStop);
     
-  } else if (plight->getMode() == DWLightModeOff) {
-    plight->setModeAnimate(&animFlickerOn);
-
-  } else {
-    plight->setModeSimple(DWLightModeOff, 124);
   }
 }
 
-#define FIREPLACE_THROB_REPEAT 11
+#define FIREPLACE_THROB_REPEAT 10
 short fireplayThrobCount = 0;
 void callbackLightHouseDownSequence(void* pdwlight) {
   DWLight* plight = reinterpret_cast<DWLight*>(pdwlight);
@@ -117,27 +88,33 @@ void callbackLightHouseDownSequence(void* pdwlight) {
   plight->resetStep();
 
   if (plight->getAnimation() == &animFireplaceOn) {
-if (pdwlight == &lightStreet) plight->setModeAnimateInterpolate(&animFireplaceThrob); else 
-    plight->setModeAnimate(&animFireplaceThrob);
+    plight->setModeAnimateInterpolate(&animFireplaceThrob);
     fireplayThrobCount = 0;
     
   } else if (plight->getAnimation() == &animFireplaceThrob) {
     fireplayThrobCount++;
-    if (fireplayThrobCount > FIREPLACE_THROB_REPEAT) {
-if (pdwlight == &lightStreet) plight->setModeAnimateInterpolate(&animFireplaceOff); else 
-      plight->setModeAnimate(&animFireplaceOff);
+    if (fireplayThrobCount >= FIREPLACE_THROB_REPEAT) {
+      plight->setModeAnimateInterpolate(&animFireplaceOff);
       fireplayThrobCount = 0;
+      lightHouseUp.setModeSimple(DWLightModeOn, 3000);
     }
     
   } else if (plight->getAnimation() == &animFireplaceOff) {
-    plight->setModeSimple(DWLightModeOff, 625);
-    
+    plight->setModeManual(0,0);
+    plight->doStep();
+    plight->setModeSimple(DWLightModeStop);
+  }
+}
+
+void callbackLightHouseUpSequence(void* pdwlight) {
+  DWLight* plight = reinterpret_cast<DWLight*>(pdwlight);
+
+  plight->resetStep();
+
+  if (plight->getMode() == DWLightModeOn) {
+    plight->setModeSimple(DWLightModeOff, 2);
   } else if (plight->getMode() == DWLightModeOff) {
-if (pdwlight == &lightStreet) plight->setModeAnimateInterpolate(&animFireplaceOn); else 
-    plight->setModeAnimate(&animFireplaceOn);
-    
-  } else {
-    plight->setModeSimple(DWLightModeOff, 62);
+    plight->setModeSimple(DWLightModeStop);
   }
 }
 
