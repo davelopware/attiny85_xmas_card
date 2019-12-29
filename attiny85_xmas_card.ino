@@ -12,6 +12,7 @@ DWLight lightHouseUp(T85Pin2Dout, false);
 
 #define TEST_DELAY 2
 
+bool canSleep();
 void startXmas();
 void callbackLightStreetSequence(void* pdwlight);
 void callbackLightHouseDownSequence(void* pdwlight);
@@ -31,6 +32,8 @@ void setup() {
   lightHouseDown.test(100);
   lightHouseUp.test(100);
 
+  dwattiny_watchdog_setup();
+  
   startXmas();
 }
 
@@ -40,9 +43,16 @@ long milliBlockStart = 0;
 
 void loop() {
   long millisNow = millis();
-  if (milliBlockStart + MILLI_BLOCK_COUNT < millisNow) {
+  if (canSleep()) {
+    dwattiny_watchdog_loop();
     milliBlockStart = millisNow;
     nMilliLoop();
+  } else {
+    millisNow = millis();
+    if (milliBlockStart + MILLI_BLOCK_COUNT < millisNow) {
+      milliBlockStart = millisNow;
+      nMilliLoop();
+    }
   }
 }
 
@@ -51,6 +61,13 @@ void nMilliLoop() {
   lightStreet.doStep();
   lightHouseDown.doStep();
   lightHouseUp.doStep();
+}
+
+bool canSleep() {
+  return
+    lightStreet.isSleepable() &&
+    lightHouseDown.isSleepable() &&
+    lightHouseUp.isSleepable();
 }
 
 void startXmas() {

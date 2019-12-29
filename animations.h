@@ -83,10 +83,12 @@ DWAnimation animFireplaceThrob("fireplace_throb", fireplaceThrobFrames, sizeof(f
 
 const DWAnimationFrame fireplaceOffFrames[] = {
   {0,255},
-  {500,100},
-  {1000,80},
-  {2000,50},
-  {5000,10}
+  {200,100},
+  {500,30},
+  {1000,10},
+  {2000,5},
+  {3000,1},
+  {3002,0}
 };
 DWAnimation animFireplaceOff("fireplace_off", fireplaceOffFrames, sizeof(fireplaceOffFrames));
 

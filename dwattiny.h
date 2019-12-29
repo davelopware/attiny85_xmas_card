@@ -31,4 +31,11 @@ const int T85Pin7Ain = A1;
 
 void dwattiny_toggleDebugLight(int wait = 0);
 
+void dwattiny_watchdog_setup();
+void dwattiny_watchdog_loop();
+void dwattiny_watchdog_sleepNow();
+void dwattiny_resetWatchDog();
+
+
+
 #endif // davelopwareattiny_h
