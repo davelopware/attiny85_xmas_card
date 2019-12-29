@@ -8,17 +8,18 @@
 void dwlighttest_setup() {
   delay(1000);
   Serial.begin(115200);
+  Serial.println("dwlighttest_setup");
   delay(1000);
 }
 
-DWAnimationFrame simpleFrames[] = {
+DWAnimationFrame dwlighttestsimpleFrames[] = {
   {1,10},
   {5,20},
   {10,20}
 };
-DWAnimation animSimple("simple", simpleFrames, sizeof(simpleFrames));
+DWAnimation dwlighttestanimSimple("simple", dwlighttestsimpleFrames, sizeof(dwlighttestsimpleFrames));
 
-DWAnimationFrame flickerOnFrames[] = {
+DWAnimationFrame dwlighttestflickerOnFrames[] = {
   {1,30},
   {5,2},
   {10,30},
@@ -40,7 +41,7 @@ DWAnimationFrame flickerOnFrames[] = {
 
   {500,250}
 };
-DWAnimation animFlickerOn("flicker_on", flickerOnFrames, sizeof(flickerOnFrames));
+DWAnimation dwlighttestanimFlickerOn("flicker_on", dwlighttestflickerOnFrames, sizeof(dwlighttestflickerOnFrames));
 
 void dwlighttest_basic() {
   Serial.println("DW LIGHT TEST=====");
@@ -55,14 +56,14 @@ void dwlighttest_basic() {
 //  light.debugDump();
 //  light.doStep();
 //  light.debugDump();
-//  light.setModeAnimation(&animFlickerOn);
+//  light.setModeAnimate(&animFlickerOn);
 //  light.doStep();
 //  light.debugDump();
 //  for(int i = 0; i < 20; i++) {
 //    light.doStep();
 //  }
   light.setAnimationEndCallback(dwlighttest_callbackHandler);
-  light.setModeAnimation(&animSimple);
+  light.setModeAnimate(&dwlighttestanimSimple);
   for(int i = 0; i < 50; i++) {
     Serial.println("v");
     light.doStep();
@@ -76,7 +77,7 @@ void dwlighttest_callbackHandler(void* pdwlight) {
 //  _pdwlight->debugDump();
   _pdwlight->resetStep();
 
-  if (_pdwlight->getMode() == DWLightModeAnimation && _pdwlight->getAnimation() == &animSimple) {
+  if (_pdwlight->getMode() == DWLightModeAnimate && _pdwlight->getAnimation() == &dwlighttestanimSimple) {
     _pdwlight->setModeSimple(DWLightModeOn, 3);
   } else if (_pdwlight->getMode() == DWLightModeOn) {
     _pdwlight->setModeSimple(DWLightModeOff, 5);

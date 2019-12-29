@@ -33,15 +33,16 @@ class DWAnimation {
     }
 
     int getFrameCount() { return _count; }
-    int getFrameStep(int frame) { return (frame >= 0 && frame < _count) ? _pframes[frame]._step : -1; }
-    int getFrameValue(int frame) { return (frame >= 0 && frame < _count) ? _pframes[frame]._value : -1; }
+    short getFrameStep(int frame) { return (frame >= 0 && frame < _count) ? _pframes[frame]._step : -1; }
+    byte getFrameValue(int frame) { return (frame >= 0 && frame < _count) ? _pframes[frame]._value : -1; }
 };
 
 enum DWLightMode {
   DWLightModeOff,
   DWLightModeOn,
   DWLightModeManual,
-  DWLightModeAnimation
+  DWLightModeAnimate,
+  DWLightModeAnimateInterpolate
 };
 
 typedef void (*DWLightCallbackAnimationEnd) (void *);
@@ -68,7 +69,8 @@ class DWLight {
     DWLightMode getMode() { return _mode; };
     void setModeSimple(DWLightMode mode, int forSteps = 0);
     void setModeManual(int value, int forSteps = 0);
-    void setModeAnimation(DWAnimation* panimation);
+    void setModeAnimate(DWAnimation* panimation);
+    void setModeAnimateInterpolate(DWAnimation* panimation);
     DWAnimation* getAnimation() { return _panimation; };
 
     int getStep() { return _step; };

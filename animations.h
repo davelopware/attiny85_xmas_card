@@ -64,15 +64,11 @@ const DWAnimationFrame flickerOffFrames[] = {
 DWAnimation animFlickerOff("flicker_off", flickerOffFrames, sizeof(flickerOffFrames));
 
 const DWAnimationFrame fireplaceOnFrames[] = {
-  {1,10},
-  {30,20},
-  {60,30},
-  {90,40},
-  {120,50},
-  {150,60},
-  {180,70},
-  {210,80},
-  {240,100},
+  {0,0},
+  {300,30},
+  {800,50},
+  {1000,100},
+  {1200,230},
 };
 DWAnimation animFireplaceOn("fireplace_on", fireplaceOnFrames, sizeof(fireplaceOnFrames));
 
@@ -94,14 +90,14 @@ const DWAnimationFrame fireplaceThrobFrames[] = {
 DWAnimation animFireplaceThrob("fireplace_throb", fireplaceThrobFrames, sizeof(fireplaceThrobFrames));
 
 const DWAnimationFrame fireplaceOffFrames[] = {
-  {1,80},
-  {30,70},
-  {60,60},
-  {90,50},
-  {120,30},
-  {150,20},
-  {180,10},
-  {210,5},
+  {0,80},
+//  {30,70},
+//  {60,60},
+//  {90,50},
+//  {120,30},
+//  {150,20},
+//  {180,10},
+  {210,0}
 };
 DWAnimation animFireplaceOff("fireplace_off", fireplaceOffFrames, sizeof(fireplaceOffFrames));
 

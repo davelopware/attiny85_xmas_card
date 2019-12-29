@@ -31,14 +31,25 @@ void DWLight::setModeManual(int value, int forSteps = 0) {
   _panimation = nullptr;
 }
 
-void DWLight::setModeAnimation(DWAnimation* panimation) {
+void DWLight::setModeAnimate(DWAnimation* panimation) {
   if (_pin == -1) {
-    Serial.print("DWLight::setModeAnimation() setting animation ");
+    Serial.print("DWLight::setModeAnimate() setting animation ");
     Serial.println(panimation->_name);
   }
   _modeChanged = true;
   _step = 0;
-  _mode = DWLightModeAnimation;
+  _mode = DWLightModeAnimate;
+  _panimation = panimation;
+};
+
+void DWLight::setModeAnimateInterpolate(DWAnimation* panimation) {
+  if (_pin == -1) {
+    Serial.print("DWLight::setModeAnimateInterpolate() setting animation ");
+    Serial.println(panimation->_name);
+  }
+  _modeChanged = true;
+  _step = 0;
+  _mode = DWLightModeAnimateInterpolate;
   _panimation = panimation;
 };
 
@@ -66,13 +77,56 @@ void DWLight::doStep() {
     }
   }
 
-  if (_mode == DWLightModeAnimation) {
+  if (_mode == DWLightModeAnimate || _mode == DWLightModeAnimateInterpolate) {
     byte iframe;
     for (iframe = _panimation->getFrameCount()-1; iframe >= 0; iframe--) {
+      
       if (_step >= _panimation->getFrameStep(iframe)) {
-        setPinValue(_panimation->getFrameValue(iframe));
+        
+        if (_mode == DWLightModeAnimateInterpolate) {
+          byte nextFrame = (iframe != _panimation->getFrameCount()-1) ? iframe + 1 : iframe; 
+          byte  fromValue = _panimation->getFrameValue(iframe);
+          short fromStep = _panimation->getFrameStep(iframe);
+          byte  toValue = _panimation->getFrameValue(nextFrame);
+          short toStep = _panimation->getFrameStep(nextFrame);
+
+//Serial.print("plight,");Serial.print((int)this);
+//Serial.print(",st,");Serial.print(_step);
+//Serial.print(",tf,");Serial.print(iframe);
+//Serial.print(",fv,");Serial.print(fromValue);
+//Serial.print(",fs,");Serial.print(fromStep);
+//Serial.print(",nf,");Serial.print(nextFrame);
+//Serial.print(",tv,");Serial.print(toValue);
+//Serial.print(",ts,");Serial.print(toStep);
+          if (fromValue == toValue) {
+//Serial.print(",iv,");Serial.print(fromValue);
+//Serial.print(",no,intereasy");
+//Serial.println();
+            setPinValue(fromValue);
+          } else {
+            byte interpolatedValue = fromValue + ((toValue - fromValue) * ( _step - fromStep) / (toStep - fromStep));
+//Serial.print(",iv,");Serial.print(interpolatedValue);
+//Serial.print(",no,inter");
+//Serial.println();
+            setPinValue(interpolatedValue);
+          }
+        } else {
+//Serial.print("plight,");Serial.print((int)this);
+//Serial.print(",st,");Serial.print(_step);
+//Serial.print(",tf,");Serial.print(iframe);
+//Serial.print(",fv,");Serial.print(_panimation->getFrameValue(iframe));
+//Serial.print(",fs,");Serial.print(_panimation->getFrameStep(iframe));
+//Serial.print(",nf,-");
+//Serial.print(",tv,-");
+//Serial.print(",ts,-");
+//Serial.print(",iv,");Serial.print(_panimation->getFrameValue(iframe));
+//Serial.print(",no,simple");
+//Serial.println();
+          setPinValue(_panimation->getFrameValue(iframe));
+        }
         break;
       }
+      
     }
     if (iframe == _panimation->getFrameCount()-1) {
       sequenceEnded();
